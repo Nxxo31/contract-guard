@@ -1,7 +1,7 @@
 {
   "name": "contract-guard",
-  "version": "0.1.0",
-  "description": "Detección de breaking changes en contratos de API (OpenAPI, GraphQL, gRPC) para CI/CD",
+  "version": "1.0.0",
+  "description": "Detecta breaking changes en especificaciones OpenAPI 3.x para CI/CD",
   "main": "dist/index.js",
   "bin": {
     "contract-guard": "dist/cli.js"
@@ -11,20 +11,34 @@
     "dev": "tsc --watch",
     "test": "vitest",
     "lint": "eslint src/ --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "openapi",
-    "graphql",
-    "grpc",
+    "openapi3",
     "breaking-change",
     "api",
     "contract-testing",
     "ci-cd",
-    "github-action"
+    "github-action",
+    "semantic-versioning"
   ],
   "author": "Sebastian Zapata",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nxxo31/contract-guard.git"
+  },
+  "homepage": "https://github.com/Nxxo31/contract-guard#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
