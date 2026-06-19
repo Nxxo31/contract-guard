@@ -99,4 +99,4 @@ fixtures/
 
 ## License
 
-MIT © Sebastian Zapata — ver [LICENSE](LICENSE).
+MIT © Sebastian Velasco— ver [LICENSE](LICENSE).
