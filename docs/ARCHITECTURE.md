@@ -1,35 +1,68 @@
-# Architecture — contract-guard MVP V1
+# Architecture — contract-guard v1.0.0
 
-## Overview
+## System Overview
 
 `contract-guard` es una CLI stateless que lee dos archivos JSON (especificación OpenAPI 3.x antigua y nueva), los normaliza a un AST interno, compara los ASTs con un motor de reglas declarativo, y emite un reporte Markdown clasificado por severidad.
 
-```
-openapi-old.json  ─┐
-                   ├──► parser.ts ─► NormalizedSpec
-openapi-new.json  ─┘                              │
-                                                 ▼
-                                           diff.ts
-                                                 │
-                                                 ▼
-                                          Change[]
-                                                 │
-                                                 ▼
-                                           rules.ts
-                                                 │
-                                                 ▼
-                                      ClassifiedChange[]
-                                                 │
-                                                 ▼
-                                           report.ts
-                                                 │
-                                                 ▼
-                                          Markdown Report
+### Data Flow
+
+```mermaid
+flowchart LR
+    A["openapi-old.json"] --> P["parser.ts<br/>normalizeSpec()"]
+    B["openapi-new.json"] --> P
+    P --> NS["NormalizedSpec"]
+    NS --> D["diff.ts<br/>diffSpecs()"]
+    D --> C["Change[]"]
+    C --> R["rules.ts<br/>classifyChanges()"]
+    R --> CC["ClassifiedChange[]"]
+    CC --> RP["report.ts<br/>buildReport()"]
+    RP --> M["Markdown Report"]
+    RP --> O["stdout / file"]
 ```
 
-## Source modules
+### Pipeline Sequence
+
+```mermaid
+sequenceDiagram
+    participant CLI as cli.ts
+    participant Parser as parser.ts
+    participant Diff as diff.ts
+    participant Rules as rules.ts
+    participant Report as report.ts
+
+    CLI->>Parser: loadSpecFromFile(oldPath)
+    CLI->>Parser: loadSpecFromFile(newPath)
+    Parser-->>CLI: raw JSON objects
+
+    CLI->>Parser: normalizeSpec(rawOld)
+    CLI->>Parser: normalizeSpec(rawNew)
+    Parser-->>CLI: NormalizedSpec × 2
+
+    CLI->>Diff: diffSpecs(oldSpec, newSpec)
+    Diff-->>CLI: Change[]
+
+    CLI->>Rules: classifyChanges(changes)
+    Rules-->>CLI: ClassifiedChange[]
+
+    CLI->>Report: buildReport(diff, classified, options)
+    Report-->>CLI: Report { markdown, hasBreakingChanges, ... }
+
+    alt --output flag
+        CLI->>CLI: fs.writeFileSync(output, markdown)
+    else default
+        CLI->>CLI: console.log(markdown)
+    end
+
+    alt --strict + hasBreakingChanges
+        CLI->>CLI: process.exit(1)
+    end
+```
+
+## Source Modules
 
 ### `src/parser.ts`
+
+Lee y normaliza specs OpenAPI 3.x. Produce un AST tipado independientes del formato original.
 
 **Responsabilidad:** Leer y validar specs OpenAPI 3.x, normalizar a estructuras tipadas.
 
@@ -43,37 +76,43 @@ openapi-new.json  ─┘                              │
 - Cada `NormalizedOperation` contiene: method, path, parameters, responses, requestBody
 
 **Notas de implementación:**
-- Soporta solo OpenAPI 3.x (`openapi` empieza con `3.`)
+- Soporta solo OpenAPI 3.x (`openapi` empieza con `3.`) — validado por `isOpenApi3Object()`
 - `$ref` en parámetros se procesa como parámetro vacío (MVP — resolución completa en V2)
 - `normalizeSchema` es recursiva para `properties` y `items`
 
 ### `src/diff.ts`
 
-**Responsabilidad:** Comparar dos `NormalizedSpec` y enumerar todos los cambios.
+Compara dos `NormalizedSpec` y enumera todos los cambios entre ellos.
 
 **Estrategia:**
-1. Construir un mapa `opsByEndpoint` → `Map<"GET /users", NormalizedOperation[]>` para cada spec.
-2. Recorrer los keys de la spec antigua:
-   - Si el key no existe en la nueva → `endpoint-removed`.
-   - Si existe → llamar `compareOperations(oldOp, newOp)`.
-3. Recorrer los keys de la spec nueva que no existen en la antigua → `endpoint-added`.
-4. `compareOperations` delega a `compareParameters` y `compareResponses`.
+```mermaid
+flowchart TD
+    A[oldSpec endpoints] --> B{exists in newSpec?}
+    B -->|No| C[endpoint-removed]
+    B -->|Yes| D[compareOperations]
+    E[newSpec endpoints] --> F{exists in oldSpec?}
+    F -->|No| G[endpoint-added]
+    F -->|Yes| H[already handled]
+    D --> I[compareParameters]
+    D --> J[compareResponses]
+```
 
 **Cambios detectados:**
-| Kind | Clasificado como |
-|------|-----------------|
-| `endpoint-removed` | 🔴 BREAKING |
-| `parameter-removed` | 🔴 BREAKING |
-| `parameter-required-added` | 🔴 BREAKING |
-| `parameter-type-changed` | 🔴 BREAKING |
-| `response-removed` | 🔴 BREAKING |
-| `parameter-optional-added` | 🟡 WARNING |
-| `endpoint-added` | 🟢 SAFE |
-| `response-added` | 🟡 WARNING |
+
+| Kind | Severity | Notes |
+|------|----------|-------|
+| `endpoint-removed` | BREAKING | Operación eliminada |
+| `parameter-removed` | BREAKING | Parámetro eliminado |
+| `parameter-required-added` | BREAKING | Nuevo parámetro obligatorio |
+| `parameter-type-changed` | BREAKING | Cambio de tipo en parámetro |
+| `response-removed` | BREAKING | Código de respuesta eliminado |
+| `parameter-optional-added` | WARNING | Nuevo parámetro opcional |
+| `endpoint-added` | SAFE | Nueva operación agregada |
+| `response-added` | WARNING | Nuevo código de respuesta |
 
 ### `src/rules.ts`
 
-**Responsabilidad:** Clasificar cambios por severidad e imponer reglas configurables.
+Clasifica cambios por severidad e impone reglas configurables.
 
 **Archivo:**
 - `Severity` enum: `BREAKING | WARNING | SAFE`
@@ -86,7 +125,7 @@ openapi-new.json  ─┘                              │
 
 ### `src/report.ts`
 
-**Responsabilidad:** Generar el reporte estructurado y su representación.
+Genera el reporte estructurado y su representación.
 
 **`buildReport(diff, classified, options)` → `Report`:**
 ```ts
@@ -104,7 +143,7 @@ interface Report {
 
 ### `src/cli.ts`
 
-**Responsabilidad:** Interfaz de usuario (Commander CLI).
+Interfaz de usuario mediante Commander CLI.
 
 **Comandos:**
 ```
@@ -135,5 +174,6 @@ contract-guard compare <old> <new> [-o report.md] [--strict] [--no-safe]
 
 - GraphQL SDL y gRPC/protobuf
 - Reglas configurables por organización (archivo `contract-guard.config.ts`)
+- Resolución completa de `$ref` en specs
 - Comentarios automáticos en PR (GitHub API)
 - SARIF output para integraciones de security scanning
