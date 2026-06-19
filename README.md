@@ -1,63 +1,79 @@
 # contract-guard
 
-> Los equipos rompen integraciones entre microservicios o con clientes externos porque cambian un campo en su API (OpenAPI/GraphQL/gRPC) sin darse cuenta de que es un "breaking change".
+[![npm version](https://img.shields.io/npm/v/contract-guard)](https://www.npmjs.com/package/contract-guard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/Nxxo31/contract-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/Nxxo31/contract-guard/actions)
 
-**contract-guard** detecta cambios incompatibles entre dos versiones de una especificación OpenAPI 3.x y emite un reporte Markdown. Sin LLMs, sin servicios externos, sin dependencias de pago.
+> Los equipos rompen integraciones entre microservicios o con clientes externos porque cambian un campo en su API sin darse cuenta de que es un "breaking change". **contract-guard** lo detecta antes de que llegue a producción.
+
+Detecta cambios incompatibles entre dos versiones de una especificación OpenAPI 3.x y emite un reporte Markdown. Sin LLMs, sin servicios externos, sin dependencias de pago.
 
 Para detalles del producto consulta [PROJECT.md](PROJECT.md).
 
 ## Estado
 
-**MVP V1 implementado.**
+**v1.0.0 — MVP publicado.**
 - Soporte OpenAPI 3.x.
-- 10 reglas de detección (endpoint/métodos/parámetros/respuestas/tipos).
-- Reporte Markdown.
+- 10 reglas de detección (endpoints, parámetros, respuestas, tipos).
+- Reporte Markdown categorizado (breaking / warnings / safe).
 - Modo `--strict` que falla el build cuando hay breaking changes.
-- 11 tests unitarios pasando.
 
 ## Instalación
 
 ```bash
-npm install
-npm run build
+# Como paquete npm global
+npm install -g contract-guard
+contract-guard compare old.json new.json
+
+# Con npx (sin instalar)
+npx contract-guard compare old.json new.json
+
+# Como dependencia de proyecto
+npm install --save-dev contract-guard
 ```
 
 ## Uso
 
 ```bash
-# Comparar dos specs OpenAPI JSON y mostrar reporte en stdout
-node dist/cli.js compare old.json new.json
+# Comparar dos specs y mostrar reporte en stdout
+contract-guard compare old.json new.json
 
 # Escribir reporte a archivo
-node dist/cli.js compare old.json new.json -o report.md
+contract-guard compare old.json new.json -o report.md
 
 # Modo estricto para CI (exit 1 si hay breaking changes)
-node dist/cli.js compare old.json new.json --strict
+contract-guard compare old.json new.json --strict
 
 # Ocultar SAFE CHANGES
-node dist/cli.js compare old.json new.json --no-safe
+contract-guard compare old.json new.json --no-safe
 ```
 
-## Reglas detectadas (MVP V1)
+## Reglas detectadas (v1.0.0)
 
 ### 🔴 Breaking changes
-- `endpoint-removed` — operación eliminada
-- `parameter-removed` — parámetro eliminado
-- `parameter-required-added` — nuevo parámetro obligatorio
-- `parameter-type-changed` — cambio de tipo en parámetro existente
-- `response-removed` — código de respuesta eliminado
+| Kind | Descripción |
+|------|-------------|
+| `endpoint-removed` | Operación eliminada |
+| `parameter-removed` | Parámetro eliminado |
+| `parameter-required-added` | Nuevo parámetro obligatorio |
+| `parameter-type-changed` | Cambio de tipo en parámetro existente |
+| `response-removed` | Código de respuesta eliminado |
 
 ### 🟡 Warnings
-- `parameter-optional-added` — nuevo parámetro opcional
+| Kind | Descripción |
+|------|-------------|
+| `parameter-optional-added` | Nuevo parámetro opcional |
 
 ### 🟢 Safe
-- `endpoint-added` — nueva operación agregada
-- `response-added` — nuevo código de respuesta
+| Kind | Descripción |
+|------|-------------|
+| `endpoint-added` | Nueva operación agregada |
+| `response-added` | Nuevo código de respuesta |
 
 ## Tests
 
 ```bash
-npm test               # suite completa (vitest, 11 tests)
+npm test               # suite completa (vitest)
 npm run typecheck      # solo type-check
 npm run lint           # eslint en src/
 npm run build          # compilación a dist/
@@ -67,16 +83,20 @@ npm run build          # compilación a dist/
 
 ```
 src/
-├── parser.ts     # normalización OpenAPI 3.x → AST
-├── diff.ts       # diff entre dos ASTs
+├── parser.ts     # normalización OpenAPI 3.x → AST tipado
+├── diff.ts       # comparación semántica entre specs
 ├── rules.ts      # clasificación breaking/warning/safe
-├── report.ts     # generación de Markdown
+├── report.ts      # generación de reportes Markdown
 └── cli.ts        # Commander CLI
 
 tests/
-└── contract-guard.test.ts   # 11 tests unitarios
+└── contract-guard.test.ts   # tests unitarios
 
 fixtures/
 ├── old-api.json  # spec base
-└── new-api.json  # spec modificada con breaking + warning + safe
+└── new-api.json  # spec con cambios variados
 ```
+
+## License
+
+MIT © Sebastian Zapata — ver [LICENSE](LICENSE).

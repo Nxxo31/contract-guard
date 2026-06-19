@@ -72,11 +72,6 @@ export function isOpenApi3Object(obj: unknown): obj is Record<string, unknown> {
 
 const HTTP_METHODS: HttpMethod[] = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace'];
 
-function resolveRef(ref: string): string | null {
-  if (!ref.startsWith('#/')) return null;
-  return ref.substring(2);
-}
-
 export function normalizeParameter(raw: any): NormalizedParameter {
   return {
     name: String(raw.name ?? ''),
@@ -188,4 +183,4 @@ export function normalizeSpec(input: unknown): NormalizedSpec {
 
 // ---------- Internals exposed for testing ----------
 
-export const __testing = { resolveRef, resolveRefDeep };
+export const __testing = { resolveRefDeep };
