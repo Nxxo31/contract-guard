@@ -132,4 +132,13 @@ contract-guard/
 
 ## License
 
-MIT © 2026 Sebastian Zapata — ver [LICENSE](LICENSE).
+This project is dual-licensed under:
+
+| License | File | Use case |
+|---------|------|----------|
+| **MIT** | [LICENSE-MIT](LICENSE-MIT) | Permissive — integrate in any project |
+| **GPL-3.0** | [LICENSE-GPL](LICENSE-GPL) | Copyleft — ensures derivative works remain free |
+
+Sumario disponible en [LICENSE](LICENSE).
+
+Copyright © 2026 Sebastian Zapata.
