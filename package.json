@@ -1,0 +1,39 @@
+{
+  "name": "contract-guard",
+  "version": "0.1.0",
+  "description": "Detección de breaking changes en contratos de API (OpenAPI, GraphQL, gRPC) para CI/CD",
+  "main": "dist/index.js",
+  "bin": {
+    "contract-guard": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src/ --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "openapi",
+    "graphql",
+    "grpc",
+    "breaking-change",
+    "api",
+    "contract-testing",
+    "ci-cd",
+    "github-action"
+  ],
+  "author": "Sebastian Zapata",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
+}
