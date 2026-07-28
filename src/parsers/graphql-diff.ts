@@ -78,7 +78,7 @@ function typeRefEquals(a: GQLTypeRef, b: GQLTypeRef): boolean {
 }
 
 function isRequiredArg(ref: GQLTypeRef): boolean {
-  return isNonNull(ref) && ref.ofType.kind !== 'non-null';
+  return ref.kind === 'non-null' && ref.ofType.kind !== 'non-null';
 }
 
 function describeRef(ref: GQLTypeRef): string {

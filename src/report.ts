@@ -21,6 +21,7 @@ function severityIcon(severity: Severity | GQLSeverity): string {
     case Severity.BREAKING: return '🔴';
     case Severity.WARNING: return '🟡';
     case Severity.SAFE: return '🟢';
+    default: return '⚪';
   }
 }
 
@@ -29,13 +30,14 @@ function severityHeader(severity: Severity | GQLSeverity): string {
     case Severity.BREAKING: return 'BREAKING CHANGES';
     case Severity.WARNING: return 'WARNINGS';
     case Severity.SAFE: return 'SAFE CHANGES';
+    default: return 'UNKNOWN';
   }
 }
 
-function renderSection(severity: Severity | GQLSeverity, changes: Array<{ message: string }>): string {
+function renderSection(severity: Severity | GQLSeverity, changes: ClassifiedGraphQLChange[] | ClassifiedChange[]): string {
   if (changes.length === 0) return '';
   let section = `## ${severityIcon(severity)} ${severityHeader(severity)}\n\n`;
-  section += changes.map(c => `- ${c.message}`).join('\n');
+  section += changes.map(c => `- ${(c as { message: string }).message}`).join('\n');
   section += '\n\n';
   return section;
 }
