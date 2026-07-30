@@ -171,9 +171,16 @@ function tokenize(s: string): Token[] {
 
     if (c === '{' || c === '}' || c === '(' || c === ')' || c === '[' || c === ']' ||
         c === ':' || c === '=' || c === '|' || c === '@' || c === '!' || c === '&' ||
-        c === '|' || c === '+' || c === '...') {
+        c === ',' || c === '+') {
       tokens.push({ type: c, value: c, pos: start });
       i++;
+      continue;
+    }
+
+    // Spread operator "..." for fragments/inline fragments
+    if (c === '.' && s.slice(i, i + 3) === '...') {
+      tokens.push({ type: '...', value: '...', pos: start });
+      i += 3;
       continue;
     }
 

@@ -1,0 +1,1 @@
+{"rules": {"breaking": ["field-removed", "type-changed"], "safe": ["description-changed"], "warning": ["field-added", "field-deprecated"]}}

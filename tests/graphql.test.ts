@@ -179,13 +179,22 @@ describe('GraphQL parser', () => {
     const queryType = schema.types.get('Query')!;
     const queryFields = (queryType as any).fields;
 
+    // The 'users' field in BASE_SCHEMA has NO arguments: `users: [User!]!`
     const usersField = queryFields.find((f: any) => f.name === 'users');
     expect(usersField).toBeDefined();
-    expect(usersField.arguments.length).toBe(2); // limit, offset
+    expect(usersField.arguments.length).toBe(0);
 
+    // The 'user' field has one argument: `user(id: ID!): User`
     const userField = queryFields.find((f: any) => f.name === 'user');
     expect(userField).toBeDefined();
     expect(userField.arguments.length).toBe(1); // id
+    expect(userField.arguments[0].name).toBe('id');
+
+    // createUser has two arguments: name, email
+    const mutationType = schema.types.get('Mutation')!;
+    const mutationFields = (mutationType as any).fields;
+    const createUserField = mutationFields.find((f: any) => f.name === 'createUser');
+    expect(createUserField.arguments.length).toBe(2);
   });
 
   it('parses type references with nullability', () => {
@@ -339,14 +348,31 @@ describe('GraphQL diff engine', () => {
   });
 
   it('detects enum value removed (BREAKING)', () => {
-    const old = parseGraphQLSDL(REMOVE_ENUM_VALUE);
-    const next = parseGraphQLSDL(REMOVE_ENUM_VALUE.replace('  MODERATOR\n', ''));
+    // Old schema has ADMIN, USER, GUEST. New schema removes GUEST.
+    const oldSchema = `
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+type Query { dummy: String }
+`;
+    const newSchema = `
+enum UserRole {
+  ADMIN
+  USER
+}
+type Query { dummy: String }
+`;
+    const old = parseGraphQLSDL(oldSchema);
+    const next = parseGraphQLSDL(newSchema);
     const diff = diffGraphQL(old, next);
 
     const removed = diff.changes.find(
-      c => c.kind === 'gql-enum-value-removed' && c.field === 'MODERATOR'
+      c => c.kind === 'gql-enum-value-removed' && c.field === 'GUEST'
     );
     expect(removed).toBeDefined();
+    expect(removed?.type).toBe('UserRole');
   });
 
   it('detects union member added (WARNING)', () => {
