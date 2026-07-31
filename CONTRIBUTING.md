@@ -1,52 +1,80 @@
-# Contributing to contract-guard
+# Contribuyendo a este proyecto
 
-Thank you for your interest in contributing!
+Gracias por tu interés en contribuir! Por favor, sigue estas pautas para asegurar un proceso de colaboración fluido y efectivo.
 
-## Development Setup
+## 📋 Cómo contribuir
 
-```bash
-git clone https://github.com/Nxxo31/contract-guard.git
-cd contract-guard
-npm install
-npm run build
-```
+1. **Fork** el repositorio
+2. **Clona** tu fork: `git clone https://github.com/tu-usuario/repo.git`
+3. **Crea una rama** para tu feature/bugfix: `git checkout -b feature/mi-nueva-funcionalidad` o `git checkout -b fix/bug-description`
+4. **Implementa** tus cambios siguiendo las convenciones del proyecto
+5. **Asegúrate de pasar los gates de verificación**:
+   - **Layer 1**: `typecheck`, `lint`, `build` deben pasar sin errores
+   - **Layer 2**: Tests de runtime (iniciar el sistema, hacer peticiones reales)
+   - **Layer 3**: Tests adversariales (límites, concurrencia, idempotencia)
+6. **Actualiza la documentación** si es necesario (PROJECT.md, README, etc.)
+7. **Haz commit** con un mensaje claro y descriptivo en español
+8. **Push** a tu fork: `git push origin feature/mi-nueva-funcionalidad`
+9. **Abre un Pull Request** hacia la rama `main` del repositorio original
 
-## Workflow
+## 🔍 Revisión de Pull Requests
 
-1. Fork the repository and create a branch from `main`.
-2. Name your branch using the type prefix: `feat/`, `fix/`, `docs/`, `chore/`.
-3. Make your changes, following the existing code style.
-4. Run the full validation suite before pushing:
+Todos los PRs deben pasar por revisión antes de ser mergeados. El proceso incluye:
 
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
+1. **Auto-revisión**: El autor revisa su propio código contra esta guía
+2. **Revisión por subagente**: Un agente de IA revisa el código buscando bugs, mejoras y cumplimiento de standards
+3. **Revisión humana**: El mantenedor revisa el PR y deja feedback
+4. **Checks automáticos**: GitHub Actions verifica los 3 layers de prueba
 
-5. Open a Pull Request with a clear description.
+## 📝 Guía de commits
 
-## Coding Standards
+Usa el formato: `<tipo>: <descripción>`
 
-- **TypeScript strict mode** is enabled. All code must pass `tsc --noEmit`.
-- **ESLint** rules apply to all files in `src/`.
-- **Vitest** for unit tests. Aim for meaningful coverage of new logic.
-- **Conventional Commits** for commit messages (`feat:`, `fix:`, `docs:`, `chore:`, etc.).
-- **No external LLM calls** in the core library. Heuristics-only for the open-source version.
+Tipos permitidos:
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de bug
+- `docs`: Cambios en documentación
+- `style`: Formato, espacios, tabs, etc. (sin cambio de lógica)
+- `refactor`: Refactorización de código
+- `perf`: Mejora de rendimiento
+- `test`: Añadir o modificar tests
+- `chore`: Cambios en build, herramientas, dependencias, etc.
 
-## What to Contribute
+Ejemplos:
+- `feat: agrega endpoint de upload de evidencia ciudadana`
+- `fix: corrige error de tipo en validación de JWT`
+- `docs: actualiza PROJECT.md con decisiones de arquitectura`
 
-- New detection rules for OpenAPI 3.x compatibility.
-- Support for other specification formats (GraphQL SDL, gRPC/protobuf — planned for V2).
-- Additional output formatters (SARIF, JSON, HTML).
-- GitHub Action improvements.
-- Test fixtures for edge-case OpenAPI specs.
+## 🧪 Estándares de calidad
 
-## Reporting Issues
+- **Ningún comentario TODO** en código de producción
+- **Ningún console.log** en código de producción (usa logger estructurado)
+- **Ningún magic number** — usar constantes nombradas
+- **Ningún archivo .env** en control de versiones (solo .env.example)
+- **Todas las variables de entorno** deben tener valores por defecto seguros o fallar explícitamente
+- **Ningún código duplicado** — extraer a funciones o módulos reutilizables
 
-Bug reports and feature requests are welcome. Please search existing issues before duplicating.
+## ⚠️ Lo que NO se acepta
 
-## License
+- Commits que rompen `typecheck`, `lint` o `build`
+- PRs sin tests (cuando aplique)
+- Código que no sigue el estilo del proyecto (usar Prettier/ESLint para TS/JS, gofmt para Go, etc.)
+- Información sensible en el código (API keys, passwords, tokens)
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+## ❓ Preguntas frecuentes
+
+**¿Necesito correr los tests localmente antes de enviar un PR?**  
+Sí, siempre. Los CI fallarán si no pasan los tests, pero es mejor detectar problemas temprano.
+
+**¿Qué pasa si mi PR tiene conflictos con main?**  
+Rebasea tu rama contra main y resuelve los conflictos antes de pedir review.
+
+**¿Puedo solicitar una feature sin implementarla?**  
+Sí, abre un issue con la etiqueta `enhancement` y describe tu idea.
+
+## 🙏 Agradecimientos
+
+Gracias por contribuir a hacer este proyecto mejor. Tu esfuerzo ayuda a mantener el código limpio, seguro y profesional.
+
+---
+*Actualizado: 2026-07-31*
