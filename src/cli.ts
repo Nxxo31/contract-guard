@@ -16,6 +16,9 @@ import { diffProto } from './parsers/grpc-diff';
 import { classifyGrpcChanges, GrpcSeverity, countBySeverityGrpc } from './parsers/grpc-rules';
 import { buildGrpcReport, generateGrpcReport } from './report';
 import { loadRules, validateRules, buildSeverityOverride } from './rules-config';
+import { loadRulesFromFile } from './contract-rules/loader';
+import { evaluateRuleset } from './contract-rules/evaluator';
+import { validateRuleset } from './contract-rules/evaluator';
 
 const program = new Command();
 
@@ -190,6 +193,87 @@ function detectSchemaFormat(filePath: string, forcedFormat?: string): 'openapi' 
   }
   // Default to OpenAPI
   return 'openapi';
+}
+
+// ---------------------------------------------------------------------------
+// contract-rules subcommand
+// ---------------------------------------------------------------------------
+// Evaluates a JSON/YAML ruleset against a single contract data file. The
+// rules are loaded at runtime — no recompile required. Useful for CI checks
+// on contract payload as well as for sanity-checking the React UI output.
+//
+//   contract-guard contract-rules --rules ./examples/rules.yaml \
+//     --contract ./examples/contract.json
+//   contract-guard contract-rules --rules ./examples/rules.yaml \
+//     --json '{"amount": 99999}'
+program
+  .command('contract-rules')
+  .description('Evaluate a JSON/YAML ruleset against contract data and report matched rules.')
+  .requiredOption('--rules <file>', 'Path to JSON or YAML rules file (loaded at runtime)')
+  .option('--contract <file>', 'Path to a JSON contract data file')
+  .option('--json <string>', 'Inline JSON contract data (overrides --contract)')
+  .option('--summary', 'Print only a one-line summary instead of the detail table')
+  .action((options: { rules: string; contract?: string; json?: string; summary?: boolean }) => {
+    try {
+      const { ruleset, errors } = (function loadAndValidate() {
+        const loaded = loadRulesFromFile(options.rules);
+        const errs = validateRuleset(loaded);
+        return { ruleset: loaded, errors: errs };
+      })();
+
+      if (errors.length > 0) {
+        for (const e of errors) {
+          console.error(`contract-guard: invalid rule #${e.index}: ${e.error}`);
+        }
+        process.exit(2);
+      }
+
+      let data: Record<string, unknown>;
+      if (options.json) {
+        data = JSON.parse(options.json) as Record<string, unknown>;
+      } else if (options.contract) {
+        const content = fs.readFileSync(path.resolve(options.contract), 'utf-8');
+        data = JSON.parse(content) as Record<string, unknown>;
+      } else {
+        console.error('contract-guard: --contract or --json is required');
+        process.exit(2);
+        return; // unreachable, but satisfies the type checker
+      }
+
+      const result = evaluateRuleset(ruleset, data);
+
+      if (options.summary) {
+        console.log(`Contract ${result.contractId ?? '(no id)'}: ${result.matchedCount}/${result.totalRules} rules matched — ${result.blockers.length} block, ${result.alerts.length} alert, ${result.flags.length} flag, ${result.notifications.length} notify`);
+      } else {
+        console.log(`\nContract rules evaluation — ${result.contractId ?? '(no contractId)'}\n`);
+        console.log(`Total rules: ${result.totalRules} | Matched: ${result.matchedCount}\n`);
+        for (const r of result.results) {
+          const status = r.matched ? '✓ MATCH' : '✗ no match';
+          console.log(`${status}  [${r.action.toUpperCase()}] ${r.ruleName}${r.severity ? ` (${r.severity})` : ''}`);
+          for (const c of r.conditionResults) {
+            const mark = c.matched ? '+' : '-';
+            console.log(`    ${mark} ${c.field} ${c.operator} ${formatInline(c.expected)} → got ${formatInline(c.actual)}`);
+          }
+        }
+        if (result.blockers.length > 0) {
+          console.log(`\n⚠ ${result.blockers.length} BLOCK action(s) — contract should not proceed.`);
+        }
+      }
+
+      // Non-zero exit when any block action fires (CI-friendly).
+      if (result.blockers.length > 0) process.exit(1);
+    } catch (error) {
+      console.error('contract-guard:', (error as Error).message);
+      process.exit(2);
+    }
+  });
+
+function formatInline(v: unknown): string {
+  if (v === undefined) return 'undefined';
+  if (v === null) return 'null';
+  if (Array.isArray(v)) return JSON.stringify(v);
+  if (typeof v === 'string') return `"${v}"`;
+  return String(v);
 }
 
 program.parse(process.argv);
