@@ -15,7 +15,7 @@ import { loadProtoFromFile } from './parsers/grpc';
 import { diffProto } from './parsers/grpc-diff';
 import { classifyGrpcChanges, GrpcSeverity, countBySeverityGrpc } from './parsers/grpc-rules';
 import { buildGrpcReport, generateGrpcReport } from './report';
-import { loadRules, validateRules, buildSeverityOverride } from './rules-config';
+import { loadRules, validateRules, buildSeverityOverride, loadRulesFromDirectory, buildOverrideFromAny } from './rules-config';
 import { loadRulesFromFile } from './contract-rules/loader';
 import { evaluateRuleset } from './contract-rules/evaluator';
 import { validateRuleset } from './contract-rules/evaluator';
@@ -35,9 +35,10 @@ program
   .option('-o, --output <file>', 'Write the report to a file instead of stdout')
   .option('--format <format>', 'Force format: openapi, graphql, or grpc (auto-detected if omitted)')
   .option('--rules <file>', 'Path to JSON/YAML rules file for custom severity classification')
+  .option('--rules-dir <dir>', 'Directory with rule files (.contract/rules/ by default)')
   .option('--no-safe', 'Hide SAFE CHANGES in the report')
   .option('--strict', 'Exit with non-zero code if breaking changes exist (for CI)')
-  .action((oldPath: string, newPath: string, options: { output?: string; format?: string; rules?: string; safe?: boolean; strict?: boolean }) => {
+  .action((oldPath: string, newPath: string, options: { output?: string; format?: string; rules?: string; rulesDir?: string; safe?: boolean; strict?: boolean }) => {
     try {
       const format = detectSchemaFormat(oldPath, options.format);
       let rulesOverride: Map<string, 'breaking' | 'warning' | 'safe'> | undefined;
@@ -48,7 +49,30 @@ program
           console.error('contract-guard: Invalid rules file:', validationError);
           process.exit(2);
         }
-        rulesOverride = buildSeverityOverride(rulesFile);
+        const detectedFormat = format === 'graphql' ? 'graphql' : format === 'grpc' ? 'grpc' : 'openapi';
+        rulesOverride = buildOverrideFromAny(rulesFile, detectedFormat);
+      } else if (options.rulesDir) {
+        const loaded = loadRulesFromDirectory(options.rulesDir);
+        if (loaded) {
+          const validationError = validateRules(loaded);
+          if (validationError) {
+            console.error('contract-guard: Invalid rules in', options.rulesDir + ':', validationError);
+            process.exit(2);
+          }
+          const detectedFormat = format === 'graphql' ? 'graphql' : format === 'grpc' ? 'grpc' : 'openapi';
+          rulesOverride = buildOverrideFromAny(loaded, detectedFormat);
+        }
+      } else {
+        // Auto-load from .contract/rules/ if it exists
+        const dir = path.resolve(process.cwd(), '.contract', 'rules');
+        const loaded = loadRulesFromDirectory(dir);
+        if (loaded) {
+          const validationError = validateRules(loaded);
+          if (!validationError) {
+            const detectedFormat = format === 'graphql' ? 'graphql' : format === 'grpc' ? 'grpc' : 'openapi';
+            rulesOverride = buildOverrideFromAny(loaded, detectedFormat);
+          }
+        }
       }
 
       if (format === 'graphql') {
