@@ -158,23 +158,8 @@ program
         const oldSpec = normalizeSpec(rawOld);
         const newSpec = normalizeSpec(rawNew);
         const diff = diffSpecs(oldSpec, newSpec);
-        let classified = classifyChanges(diff.changes);
-        if (rulesOverride) {
-          classified = classified.map(c => {
-            const override = rulesOverride.get(c.kind);
-            if (override) {
-              let severity: Severity;
-              switch (override) {
-                case 'breaking': severity = Severity.BREAKING; break;
-                case 'warning': severity = Severity.WARNING; break;
-                case 'safe': severity = Severity.SAFE; break;
-              }
-              return { ...c, severity, message: c.detail };
-            }
-            return c;
-          });
-        }
         const includeSafe = options.safe !== false;
+        const classified = classifyChanges(diff.changes, rulesOverride);
         const report = buildReport(diff, classified, {
           includeSafeChanges: includeSafe,
           strict: options.strict ?? false

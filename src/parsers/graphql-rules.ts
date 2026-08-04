@@ -52,13 +52,17 @@ const SAFE_KINDS: Set<GraphQLChangeKind> = new Set([
   'gql-type-description-changed',    // doc changes are safe
 ]);
 
-export function classifyGraphQLChanges(changes: GraphQLChange[]): ClassifiedGraphQLChange[] {
+export function classifyGraphQLChanges(changes: GraphQLChange[], rulesOverride?: Map<string, Severity>): ClassifiedGraphQLChange[] {
   return changes.map(change => {
     let severity: Severity;
-    if (BREAKING_KINDS.has(change.kind)) severity = Severity.BREAKING;
-    else if (WARNING_KINDS.has(change.kind)) severity = Severity.WARNING;
-    else if (SAFE_KINDS.has(change.kind)) severity = Severity.SAFE;
-    else severity = Severity.WARNING;
+    if (rulesOverride && rulesOverride.has(change.kind)) {
+      severity = rulesOverride.get(change.kind)!;
+    } else {
+      if (BREAKING_KINDS.has(change.kind)) severity = Severity.BREAKING;
+      else if (WARNING_KINDS.has(change.kind)) severity = Severity.WARNING;
+      else if (SAFE_KINDS.has(change.kind)) severity = Severity.SAFE;
+      else severity = Severity.WARNING;
+    }
 
     return {
       ...change,
