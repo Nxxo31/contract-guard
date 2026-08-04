@@ -60,13 +60,17 @@ const SAFE_KINDS: Set<GrpcChangeKind> = new Set([
   'noop'
 ]);
 
-export function classifyGrpcChanges(changes: GrpcChange[]): ClassifiedGrpcChange[] {
+export function classifyGrpcChanges(changes: GrpcChange[], rulesOverride?: Map<string, GrpcSeverity>): ClassifiedGrpcChange[] {
   return changes.map(change => {
     let severity: GrpcSeverity;
-    if (BREAKING_KINDS.has(change.kind)) severity = GrpcSeverity.BREAKING;
-    else if (WARNING_KINDS.has(change.kind)) severity = GrpcSeverity.WARNING;
-    else if (SAFE_KINDS.has(change.kind)) severity = GrpcSeverity.SAFE;
-    else severity = GrpcSeverity.WARNING;
+    if (rulesOverride && rulesOverride.has(change.kind)) {
+      severity = rulesOverride.get(change.kind)!;
+    } else {
+      if (BREAKING_KINDS.has(change.kind)) severity = GrpcSeverity.BREAKING;
+      else if (WARNING_KINDS.has(change.kind)) severity = GrpcSeverity.WARNING;
+      else if (SAFE_KINDS.has(change.kind)) severity = GrpcSeverity.SAFE;
+      else severity = GrpcSeverity.WARNING;
+    }
 
     return {
       ...change,

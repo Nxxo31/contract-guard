@@ -1,0 +1,65 @@
+# Example contract-rules — block + alert on contract fields
+# Loaded at runtime; no recompile required.
+#
+# `contract-guard contract-rules --rules ./examples/rules.yaml --contract ./examples/contract.json`
+#
+# Fields are dotted paths into the contract data:
+#   amount, currency, signDate, partyA.name, parties.length, etc.
+
+version: "1.0"
+rules:
+  - name: "amount-limit"
+    description: "Block USD contracts above 100000"
+    enabled: true
+    action: block
+    severity: high
+    conditions:
+      - field: amount
+        operator: ">"
+        value: 100000
+        type: number
+      - field: currency
+        operator: "="
+        value: "USD"
+
+  - name: "missing-counterparty"
+    description: "Flag contracts without a counterparty field"
+    enabled: true
+    action: flag
+    severity: medium
+    conditions:
+      - field: counterparty
+        operator: not-exists
+
+  - name: "future-sign-date"
+    description: "Alert when the signature date is in the future"
+    enabled: true
+    action: alert
+    severity: low
+    conditions:
+      - field: signDate
+        operator: ">"
+        value: "2026-12-31"
+        type: date
+
+  - name: "too-many-parties"
+    description: "Notify when a contract lists more than 5 parties"
+    enabled: true
+    action: notify
+    severity: low
+    conditions:
+      - field: parties.length
+        operator: ">"
+        value: 5
+        type: number
+
+  - name: "blocked-counterparty"
+    description: "Block contracts involving sanctioned entities"
+    enabled: true
+    action: block
+    severity: critical
+    tags: ["compliance", "sanctions"]
+    conditions:
+      - field: counterparty
+        operator: in
+        value: ["ACME Sanctions LLC", "Globex Blacklisted"]

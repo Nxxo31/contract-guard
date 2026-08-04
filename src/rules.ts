@@ -1,10 +1,6 @@
 import { Change } from './diff';
 
-export enum Severity {
-  BREAKING = 'breaking',
-  WARNING = 'warning',
-  SAFE = 'safe'
-}
+export type Severity = 'breaking' | 'warning' | 'safe';
 
 export interface ClassifiedChange extends Change {
   severity: Severity;
@@ -36,13 +32,17 @@ const SAFE_KINDS = new Set([
   'noop'
 ]);
 
-export function classifyChanges(changes: Change[]): ClassifiedChange[] {
+export function classifyChanges(changes: Change[], rulesOverride?: Map<string, Severity>): ClassifiedChange[] {
   return changes.map(change => {
     let severity: Severity;
-    if (BREAKING_KINDS.has(change.kind)) severity = Severity.BREAKING;
-    else if (WARNING_KINDS.has(change.kind)) severity = Severity.WARNING;
-    else if (SAFE_KINDS.has(change.kind)) severity = Severity.SAFE;
-    else severity = Severity.WARNING;
+    if (rulesOverride && rulesOverride.has(change.kind)) {
+      severity = rulesOverride.get(change.kind)!;
+    } else {
+      if (BREAKING_KINDS.has(change.kind)) severity = 'breaking';
+      else if (WARNING_KINDS.has(change.kind)) severity = 'warning';
+      else if (SAFE_KINDS.has(change.kind)) severity = 'safe';
+      else severity = 'warning';
+    }
 
     return {
       ...change,
@@ -66,9 +66,9 @@ export function applyRules(
 
 export function countBySeverity(changes: ClassifiedChange[]): Record<Severity, number> {
   const counts: Record<Severity, number> = {
-    [Severity.BREAKING]: 0,
-    [Severity.WARNING]: 0,
-    [Severity.SAFE]: 0
+    breaking: 0,
+    warning: 0,
+    safe: 0
   };
   for (const c of changes) {
     counts[c.severity] += 1;

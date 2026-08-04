@@ -20,13 +20,13 @@ export interface Report {
 
 function severityIcon(severity: Severity | GQLSeverity | GrpcSeverity): string {
   switch (severity) {
-    case Severity.BREAKING:
+    case 'breaking':
     case GQLSeverity.BREAKING:
     case GrpcSeverity.BREAKING: return '🔴';
-    case Severity.WARNING:
+    case 'warning':
     case GQLSeverity.WARNING:
     case GrpcSeverity.WARNING: return '🟡';
-    case Severity.SAFE:
+    case 'safe':
     case GQLSeverity.SAFE:
     case GrpcSeverity.SAFE: return '🟢';
     default: return '⚪';
@@ -35,13 +35,13 @@ function severityIcon(severity: Severity | GQLSeverity | GrpcSeverity): string {
 
 function severityHeader(severity: Severity | GQLSeverity | GrpcSeverity): string {
   switch (severity) {
-    case Severity.BREAKING:
+    case 'breaking':
     case GQLSeverity.BREAKING:
     case GrpcSeverity.BREAKING: return 'BREAKING CHANGES';
-    case Severity.WARNING:
+    case 'warning':
     case GQLSeverity.WARNING:
     case GrpcSeverity.WARNING: return 'WARNINGS';
-    case Severity.SAFE:
+    case 'safe':
     case GQLSeverity.SAFE:
     case GrpcSeverity.SAFE: return 'SAFE CHANGES';
     default: return 'UNKNOWN';
@@ -66,20 +66,20 @@ export function generateMarkdownReport(
   const { includeSafeChanges = true, strict = false } = options;
   const visible = includeSafeChanges
     ? classified
-    : classified.filter(c => c.severity !== Severity.SAFE);
+    : classified.filter(c => c.severity !== 'safe');
 
-  const breaking = visible.filter(c => c.severity === Severity.BREAKING);
-  const warnings = visible.filter(c => c.severity === Severity.WARNING);
-  const safe = visible.filter(c => c.severity === Severity.SAFE);
+  const breaking = visible.filter(c => c.severity === 'breaking');
+  const warnings = visible.filter(c => c.severity === 'warning');
+  const safe = visible.filter(c => c.severity === 'safe');
 
   let md = `# Contract Guard Report\n\n`;
   md += `**Old version:** \`${diff.oldSpec.title}\` ${diff.oldSpec.version}\n`;
   md += `**New version:** \`${diff.newSpec.title}\` ${diff.newSpec.version}\n\n`;
 
-  md += renderSection(Severity.BREAKING, breaking);
-  md += renderSection(Severity.WARNING, warnings);
+  md += renderSection('breaking', breaking);
+  md += renderSection('warning', warnings);
   if (includeSafeChanges) {
-    md += renderSection(Severity.SAFE, safe);
+    md += renderSection('safe', safe);
   }
 
   md += '---\n\n';
@@ -97,12 +97,12 @@ export function buildReport(
   classified: ClassifiedChange[],
   options: ReportOptions = {}
 ): Report {
-  const hasBreakingChanges = classified.some(c => c.severity === Severity.BREAKING);
-  const hasWarnings = classified.some(c => c.severity === Severity.WARNING);
+  const hasBreakingChanges = classified.some(c => c.severity === 'breaking');
+  const hasWarnings = classified.some(c => c.severity === 'warning');
 
-  const breakingCount = classified.filter(c => c.severity === Severity.BREAKING).length;
-  const warningCount = classified.filter(c => c.severity === Severity.WARNING).length;
-  const safeCount = classified.filter(c => c.severity === Severity.SAFE).length;
+  const breakingCount = classified.filter(c => c.severity === 'breaking').length;
+  const warningCount = classified.filter(c => c.severity === 'warning').length;
+  const safeCount = classified.filter(c => c.severity === 'safe').length;
 
   const summary = `${breakingCount} breaking, ${warningCount} warning(s), ${safeCount} safe`;
 
