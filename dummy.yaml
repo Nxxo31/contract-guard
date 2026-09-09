@@ -1,0 +1,9 @@
+rules:
+  breaking:
+    - field-removed
+    - type-changed
+  warning:
+    - field-added
+    - field-deprecated
+  safe:
+    - description-changed

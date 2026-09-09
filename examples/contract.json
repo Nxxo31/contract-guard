@@ -1,0 +1,1 @@
+{"amount": 150000, "contractId": "C-2026-001", "counterparty": "ACME Sanctions LLC", "currency": "USD", "parties": ["Acme Corp", "Globex Inc", "Initech", "Hooli", "Pied Piper", "Umbrella"], "partyA": {"country": "CO", "name": "Sebastian"}, "partyB": {"country": "US", "name": "Acme Corp"}, "signDate": "2027-03-15"}

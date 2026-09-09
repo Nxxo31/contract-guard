@@ -1,0 +1,49 @@
+# Contract Guard — Configurable Rules
+#
+# This directory holds YAML rule files that override the default severity
+# classification for detected changes. Files are loaded alphabetically;
+# extended rules (with `name:`) from multiple files are concatenated.
+#
+# Two schemas are supported:
+#
+# 1. Simple schema — map change kinds to severities:
+#
+#   rules:
+#     breaking: ["endpoint-removed", "parameter-removed"]
+#     warning: ["parameter-optional-added", "description-changed"]
+#     safe: ["endpoint-added"]
+#
+# 2. Extended schema — individual rules with metadata:
+#
+#   rules:
+#     - name: no-breaking-change
+#       type: openapi          # openapi | graphql | grpc | any
+#       severity: error         # error (=breaking) | warning | safe
+#       pattern: "endpoint-removed"
+#       description: "Endpoints cannot be removed between versions"
+#
+# If .contract/rules/ exists in the working directory, rules are auto-loaded
+# when running `contract-guard compare`. Use --rules-dir to point elsewhere.
+
+# Extended schema example:
+rules:
+  - name: no-removed-endpoints
+    type: any
+    severity: error
+    pattern: "endpoint-removed"
+    description: "Removing endpoints is always a breaking change"
+  - name: no-removed-methods
+    type: any
+    severity: error
+    pattern: "method-removed"
+    description: "Removing HTTP methods is a breaking change"
+  - name: required-param-added
+    type: openapi
+    severity: error
+    pattern: "parameter-required-added"
+    description: "Adding required parameters breaks existing clients"
+  - name: treat-description-change-as-safe
+    type: any
+    severity: safe
+    pattern: "description-changed"
+    description: "Documentation changes are safe"
