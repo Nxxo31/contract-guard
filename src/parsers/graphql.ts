@@ -147,7 +147,7 @@ function tokenize(s: string): Token[] {
   while (i < s.length) {
     i = skipWs(s, i);
     if (i >= s.length) break;
-    let start = i;
+    const start = i;
     const c = s[i];
 
     if (c === '"') {
@@ -326,11 +326,13 @@ class GraphQLParser {
     }
     // Handle leading & case: "implements & Interface1 & Interface2"
     if (this.tryConsume('&')) {
+      /* eslint-disable no-constant-condition */
       while (true) {
         if (this.peekValue('{')) break;
         interfaces.push(this.parseName());
         if (!this.tryConsume('&')) break;
       }
+      /* eslint-enable no-constant-condition */
     }
     return interfaces;
   }
@@ -487,7 +489,9 @@ class GraphQLParser {
       if (this.tryConsume('directive')) {
         const name = this.parseName();
         this.consume('@');
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         const desc = this.parseDescription();
+        /* eslint-enable @typescript-eslint/no-unused-vars */
         this.consume('(');
         const args = this.parseArguments();
         this.consume(')');

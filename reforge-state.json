@@ -1,0 +1,20 @@
+{
+  "created_at": "2026-08-18T06:55:28.643353+00:00",
+  "last_scan": null,
+  "architecture_hypothesis": null,
+  "health_history": [
+    {
+      "timestamp": "2026-08-18T06:55:28.642739+00:00",
+      "score": 100.0,
+      "dead_code_ratio": 0.0,
+      "duplicate_ratio": 0.0,
+      "god_file_count": 0,
+      "circular_count": 0,
+      "total_files": 24,
+      "total_functions": 1
+    }
+  ],
+  "fix_log": [],
+  "embeddings_cache": {},
+  "pending_fixes": []
+}

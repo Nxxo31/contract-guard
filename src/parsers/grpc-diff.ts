@@ -60,7 +60,6 @@ export interface GrpcDiffResult {
   newProto: NormalizedProto;
 }
 
-function fieldKey(message: string, field: string): string { return `${message}.${field}`; }
 
 // ---------- Diff helpers ----------
 
@@ -73,7 +72,7 @@ function diffFlatFields(
   const oldByName = new Map(oldFields.map(f => [f.name, f]));
   const newByName = new Map(newFields.map(f => [f.name, f]));
   const oldByTag  = new Map(oldFields.map(f => [f.tag, f]));
-  const newByTag  = new Map(newFields.map(f => [f.tag, f]));
+  // const newByTag  = new Map(newFields.map(f => [f.tag, f]));
 
   // Removed fields (by name)
   for (const [name, oldF] of oldByName) {

@@ -72,13 +72,13 @@ export type AnyRulesFile = RulesFile | ExtendedRulesFile;
  * Falls back to manual line-by-line parsing — avoids a YAML dependency.
  */
 export function parseRulesYaml(content: string): RulesFile {
-  var result: RulesFile = { rules: {} };
-  var currentList: string[] | null = null;
+  const result: RulesFile = { rules: {} };
+  let currentList: string[] | null = null;
 
   const lines = content.split('\n');
   for (const rawLine of lines) {
     // strip trailing comments (not inside quotes — simple approach for our schema)
-    let line = rawLine.replace(/\s+#.*$/, '');
+    const line = rawLine.replace(/\s+#.*$/, '');
 
     if (line.trim() === '') continue;
     // Top-level key
@@ -211,10 +211,10 @@ function assignRuleField(rule: Partial<ConfigRule>, key: string, rawValue: strin
       break;
     case 'severity':
       // Normalize: "error" → "breaking"
-      const sev = rawValue.toLowerCase();
-      if (sev === 'error' || sev === 'breaking') rule.severity = 'breaking';
-      else if (sev === 'warning') rule.severity = 'warning';
-      else if (sev === 'safe' || sev === 'info') rule.severity = 'safe';
+      if (rawValue.toLowerCase() === 'error' || rawValue.toLowerCase() === 'breaking')
+        rule.severity = 'breaking';
+      else if (rawValue.toLowerCase() === 'warning') rule.severity = 'warning';
+      else if (rawValue.toLowerCase() === 'safe' || rawValue.toLowerCase() === 'info') rule.severity = 'safe';
       break;
     case 'pattern':
       rule.pattern = rawValue;

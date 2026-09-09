@@ -148,8 +148,7 @@ class SqliteRuleStore implements RuleStore {
       let imported = 0;
       for (const rule of ruleset.rules) {
         try {
-          const { id, ...withoutId } = rule; // never import stale id
-          this.add({ ...withoutId, id: undefined as never });
+          this.add({ ...rule });
           imported++;
         } catch {
           // skip invalid rules but keep importing the rest
@@ -244,15 +243,14 @@ class MemoryRuleStore implements RuleStore {
     if (!Array.isArray(ruleset.rules)) throw new Error('ruleset.rules must be an array');
     if (replace) this.rules.clear();
     let imported = 0;
-    for (const rule of ruleset.rules) {
-      try {
-        const { id, ...withoutId } = rule;
-        this.add({ ...withoutId, id: undefined as never });
-        imported++;
-      } catch {
-        // skip invalid rules
-      }
-    }
+          for (const rule of ruleset.rules) {
+            try {
+              this.add({ ...rule });
+              imported++;
+            } catch {
+              // skip invalid rules but keep importing the rest
+            }
+          }
     return imported;
   }
 

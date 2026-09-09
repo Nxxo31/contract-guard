@@ -236,7 +236,7 @@ function parseConditionMapping(tokens: Token[], startIdx: number): any | null {
     }
   } else if (Array.isArray(condition.value)) {
     // inline list already parsed — keep as-is.
-  } else if (typeof condition.value === 'string' && (condition.value.startsWith('[')) ) {
+  } else if (condition.value.startsWith('[')) {
     condition.value = parseInlineList(condition.value);
   }
   return condition;

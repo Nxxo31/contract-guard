@@ -13,11 +13,7 @@ import {
   GQLTypeRef,
   typeRefToString,
   isNonNull,
-  unwrapNonNull,
-  stripNonNull
 } from './graphql';
-
-// ---------- Change types ----------
 
 export type GraphQLChangeKind =
   // Type-level
@@ -69,9 +65,6 @@ export interface GraphQLDiffResult {
   newSchema: NormalizedGraphQL;
 }
 
-function fieldKey(type: string, field: string, arg?: string): string {
-  return arg ? `${type}.${field}(${arg})` : `${type}.${field}`;
-}
 
 function typeRefEquals(a: GQLTypeRef, b: GQLTypeRef): boolean {
   return typeRefToString(a) === typeRefToString(b);
@@ -98,16 +91,16 @@ function diffFields(
   const newByName = new Map(newFields.map(f => [f.name, f]));
 
   // Removed fields
-  for (const [name, oldField] of oldByName) {
-    if (!newByName.has(name)) {
-      changes.push({
-        kind: 'gql-field-removed',
-        type: typeName,
-        field: name,
-        detail: `Field '${name}' on '${typeName}' was removed`
-      });
+    for (const [name] of oldByName) {
+      if (!newByName.has(name)) {
+        changes.push({
+          kind: 'gql-field-removed',
+          type: typeName,
+          field: name,
+          detail: `Field '${name}' on '${typeName}' was removed`
+        });
+      }
     }
-  }
 
   // Added / modified fields
   for (const [name, newField] of newByName) {
@@ -167,7 +160,7 @@ function diffArguments(
   const oldByName = new Map(oldArgs.map(a => [a.name, a]));
   const newByName = new Map(newArgs.map(a => [a.name, a]));
 
-  for (const [name, oldArg] of oldByName) {
+  for (const [name, _oldArg] of oldByName) {
     if (!newByName.has(name)) {
       changes.push({
         kind: 'gql-field-argument-removed',
@@ -257,7 +250,7 @@ function diffEnumTypes(
   const oldValues = new Map(oldType.values.map(v => [v.name, v]));
   const newValues = new Map(newType.values.map(v => [v.name, v]));
 
-  for (const [name, oldVal] of oldValues) {
+  for (const [name, _oldVal] of oldValues) {
     if (!newValues.has(name)) {
       changes.push({
         kind: 'gql-enum-value-removed',

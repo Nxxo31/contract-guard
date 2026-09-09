@@ -7,18 +7,17 @@ import { loadSpecFromFile, normalizeSpec } from './parser';
 import { loadGraphQLFromFile } from './parsers/graphql';
 import { diffSpecs } from './diff';
 import { diffGraphQL } from './parsers/graphql-diff';
-import { classifyChanges, countBySeverity, Severity } from './rules';
+import { classifyChanges, countBySeverity } from './rules';
 import { classifyGraphQLChanges, countBySeverityGraphQL, Severity as GQLSeverity } from './parsers/graphql-rules';
-import { buildReport, generateMarkdownReport } from './report';
-import { buildGraphQLReport, generateGraphQLReport } from './report';
+import { buildReport } from './report';
+import { buildGraphQLReport } from './report';
 import { loadProtoFromFile } from './parsers/grpc';
 import { diffProto } from './parsers/grpc-diff';
 import { classifyGrpcChanges, GrpcSeverity, countBySeverityGrpc } from './parsers/grpc-rules';
-import { buildGrpcReport, generateGrpcReport } from './report';
-import { loadRules, validateRules, buildSeverityOverride, loadRulesFromDirectory, buildOverrideFromAny } from './rules-config';
+import { buildGrpcReport } from './report';
+import { loadRules, validateRules, loadRulesFromDirectory, buildOverrideFromAny } from './rules-config';
 import { loadRulesFromFile } from './contract-rules/loader';
-import { evaluateRuleset } from './contract-rules/evaluator';
-import { validateRuleset } from './contract-rules/evaluator';
+import { evaluateRuleset, validateRuleset } from './contract-rules/evaluator';
 
 const program = new Command();
 
